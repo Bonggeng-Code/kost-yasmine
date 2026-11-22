@@ -1,45 +1,31 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import Papa from 'papaparse';
+import useSWR from 'swr';
+
+// 1. Buat fungsi fetcher untuk SWR yang memproses CSV menggunakan PapaParse
+const fetcher = async (url: string) => {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error("Gagal mengambil data");
+  return response.json();
+};
 
 export default function KetersediaanKamar() {
-  const [roomsData, setRoomsData] = useState<any[]>([]);
+  const webAppUrl = "https://script.google.com/macros/s/AKfycbwezJuna77b7At4sNOKAGpILpPsrX04xswVgQKZ-x3TD2PAuHhqayZ4jyT3g4_UrnJy/exec";
 
-  useEffect(() => {
-    const sheetCsvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTpAQLDtUS3rdy-BtQwJ4_yHvO-ANVeipF742UvHk1F2Ngz-O8I7BZzFj5BARq7I3ShsNrm6X59ks7y/pub?output=csv";
-
-    const fetchRooms = async () => {
-      try {
-        const response = await fetch(sheetCsvUrl);
-        if (!response.ok) throw new Error("Gagal mengambil data");
-        const csvText = await response.text();
-
-        Papa.parse(csvText, {
-          header: true,
-          skipEmptyLines: true,
-          transformHeader: (header) => header.trim().toLowerCase(),
-          complete: (results) => {
-            console.log("Parsed Data:", results.data);
-            const validRooms = results.data.filter((room: any) => room.id && room.name);
-            setRoomsData(validRooms);
-          }
-        });
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchRooms();
-  }, []);
+  const { data: roomsData = [] } = useSWR(webAppUrl, fetcher, {
+    refreshInterval: 10000,
+    revalidateOnFocus: true
+  });
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
+
     <div className="min-h-screen bg-[#f8f8f9] text-[#1c1c1e] font-sans selection:bg-[#463f3a] selection:text-white flex flex-col">
       
       {/* NAVBAR BARU */}
@@ -75,7 +61,7 @@ export default function KetersediaanKamar() {
             KETERSEDIAAN KOST
           </h1>
           <p className="text-sm font-bold text-gray-700 bg-blue-50 px-6 py-2 rounded-full border border-blue-100">
-            Informasi tersedia/penuh kamar update melalui google spreadsheet
+            Informasi tersedia/penuh kamar dapat dipantau realtime
           </p>
         </div>
 
@@ -112,7 +98,9 @@ export default function KetersediaanKamar() {
                   <h3 className="text-xl font-bold text-[#1c1c1e] mb-1">{room.name}</h3>
                   <div className="flex items-baseline gap-1 mb-4">
                     <span className="text-xs text-gray-500">Mulai</span>
-                    <span className="text-lg font-black text-gray-800">Rp {room.price}</span>
+                    <span className="text-lg font-black text-gray-800">
+                      Rp {Number(room.price).toLocaleString('id-ID')}
+                  </span>
                     <span className="text-xs text-gray-500">/bln</span>
                   </div>
                   <div className="text-xs text-gray-600 mb-6 space-y-2">
@@ -174,21 +162,107 @@ export default function KetersediaanKamar() {
       </main>
 
       {/* FOOTER */}
-      <footer className="bg-[#121212] text-white pt-16 pb-8 border-t border-gray-800 mt-10">
-        <div className="max-w-7xl mx-auto px-6 lg:px-8">
+      <footer className="mt-20 w-full rounded-t-[40px] bg-[#111111] px-8 pb-8 pt-16 text-white md:px-16 lg:px-24">
+        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-12 md:flex-row">
           
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-12 lg:gap-8 border-b border-white/10 pb-12">
-            <div className="lg:col-span-2">
-              <h2 className="text-2xl font-bold tracking-widest mb-1">YASMINE KOST</h2>
-              <p className="text-[10px] text-gray-400 mb-8 uppercase tracking-widest">Singgah dan Bercerita</p>
-              <h3 className="text-[11px] font-bold mb-2 uppercase tracking-widest text-gray-300">Alamat</h3>
-              <p className="text-sm text-gray-400 mb-6 max-w-sm">Padang Bulan Selayang I, Kec. Medan Selayang, Kota Medan, Sumatera Utara 20155</p>
-              <h3 className="text-[11px] font-bold mb-2 uppercase tracking-widest text-gray-300">Kontak</h3>
-              <p className="text-sm text-gray-400">Telp/WA: 0812-XXXX-XXXX</p>
+          {/* Kolom Kiri - Identitas & Kontak */}
+          <div className="flex w-full flex-col md:w-1/3">
+            <h2 className="mb-1 text-3xl font-bold tracking-wider">YASMINE KOST</h2>
+            <p className="mb-8 text-xs font-medium tracking-widest text-gray-400">
+              SINGGAH DAN BERCERITA
+            </p>
+
+            <div className="mb-6">
+              <h3 className="mb-2 text-xs font-bold tracking-widest">ALAMAT</h3>
+              <p className="text-sm leading-relaxed text-gray-300">
+                Padang Bulan Selayang I, Kec. Medan Selayang, Kota
+                <br />
+                Medan, Sumatera Utara 20155
+              </p>
             </div>
-            {/* Sitemap & Map sections omitted for brevity in response but expected in actual code */}
+
+            <div>
+              <h3 className="mb-2 text-xs font-bold tracking-widest">KONTAK</h3>
+              <p className="text-sm text-gray-300">Telp/WA: 0812-XXXX-XXXX</p>
+            </div>
           </div>
-          
+
+          {/* Kolom Tengah - Site Map */}
+          <div className="lg:col-span-3 flex flex-col lg:pl-8">
+            <h4 className="text-[10px] font-bold text-gray-300 mb-6 uppercase tracking-widest">
+              Site Map
+            </h4>
+            <ul className="flex flex-col gap-4">
+              {[
+                { title: 'Home', url: '/#hero' },
+                { title: 'Fasilitas', url: '/#fasilitas' },
+                { title: 'Kamar', url: '/#kamar' },
+                { title: 'Ketersedian Kamar', url: '/kamar' },
+                { title: 'Harga', url: '/#harga' },
+                { title: 'Lokasi', url: '/#lokasi' }
+              ].map((item, idx) => (
+                <li key={idx}>
+                  <a
+                    href={item.url}
+                    onClick={(e) => {
+                      if (item.url.includes('#')) {
+                        const targetId = item.url.split('#')[1];
+                        const targetElement = document.getElementById(targetId);
+                        if (targetElement) {
+                          e.preventDefault(); 
+                          targetElement.scrollIntoView({ behavior: 'smooth' }); 
+                        }
+                      }
+                    }}
+                    className="text-xs font-medium text-gray-400 hover:text-white transition-colors uppercase tracking-wider"
+                  >
+                    {item.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Kolom Kanan - Peta Lokasi */}
+          <div className="flex w-full flex-col md:w-1/3">
+            <h3 className="mb-6 text-xs font-bold tracking-widest">LOKASI PETA</h3>
+            <div className="h-48 w-full overflow-hidden rounded-xl bg-gray-800">
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d15928.484403040433!2d98.637852780345!3d3.5595725872540234!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30312fe86e91d171%3A0xe62f1a683291ffba!2sGg.%20Susuk%20IX%2C%20Padang%20Bulan%20Selayang%20I%2C%20Kec.%20Medan%20Selayang%2C%20Kota%20Medan%2C%20Sumatera%20Utara%2020155!5e0!3m2!1sid!2sid!4v1794821048935!5m2!1sid!2sid" 
+                width="100%" 
+                height="100%" 
+                style={{ border: 0 }} 
+                allowFullScreen={true} 
+                loading="lazy" 
+                referrerPolicy="strict-origin-when-cross-origin"
+                title="Peta Lokasi Yasmine Kost"
+              ></iframe>
+            </div>
+          </div>
+        </div>
+
+        {/* Garis Pemisah & Bagian Bawah */}
+        <div className="mx-auto mt-16 max-w-7xl border-t border-gray-800 pt-8">
+          <div className="flex flex-col items-center justify-center gap-6">
+            
+            {/* Ikon Media Sosial */}
+            <div className="flex gap-4">
+              {/* Instagram Icon */}
+              <a href="#" className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-600 text-gray-400 transition hover:border-white hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+              </a>
+              
+              {/* TikTok Icon */}
+              <a href="#" className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-600 text-gray-400 transition hover:border-white hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+              </a>
+            </div>
+
+            {/* Copyright */}
+            <p className="text-xs font-medium text-gray-500">
+              ©Copyright. Yasmine Kost. All rights reserved.
+            </p>
+          </div>
         </div>
       </footer>
     </div>

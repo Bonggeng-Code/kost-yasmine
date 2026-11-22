@@ -1,5 +1,19 @@
 'use client';
 
+import { ReactLenis } from '@studio-freight/react-lenis';
+
 export default function SmoothScroll({ children }: { children: any }) {
-  return <>{children}</>;
+  return (
+    <ReactLenis
+      root
+      options={{
+        lerp: 0.07,
+        duration: 1.2,
+        smoothWheel: true,
+        syncTouch: true,
+      }}
+    >
+      {children}
+    </ReactLenis>
+  );
 }
