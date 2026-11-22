@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@studio-freight/react-lenis": "^0.0.47",
+    "@tailwindcss/postcss": "^4.3.5",
     "@types/papaparse": "^5.5.2",
     "framer-motion": "^14.14.0",
     "lucide-react": "^1.73.0",
