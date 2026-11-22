@@ -102,3 +102,8 @@
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
+html, body {
+  overflow-y: auto !important;
+  height: auto !important;
+}
